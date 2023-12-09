@@ -1,6 +1,6 @@
 // app/components/CreateRoomButton.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { generateRandomCode } from '@/app/utils/codeGenerator';
 import { useRouter } from 'next/navigation';
 import { io } from 'socket.io-client';
@@ -12,27 +12,18 @@ const CreateRoomButton: React.FC = () => {
 
   const handleCreateRoom = () => {
     const generatedCode = generateRandomCode();
-    setRoomCode(generatedCode);
-  };
+    const user = prompt('Entrez votre nom d\'utilisateur :');
+    
+    if (user) {
+      setUsername(user);
 
-  useEffect(() => {
-    if (roomCode) {
-      const user = prompt('Entrez votre nom d\'utilisateur :');
-      if (user) {
-        setUsername(user);
-        const socket = io();
+      const socket = io();
+      socket.emit('createRoom', generatedCode, user);
 
-        socket.on('connect', () => {
-          socket.emit('createRoom', roomCode, user);
-          router.push(`/party?code=${roomCode}`);
-        });
-
-        return () => {
-          socket.disconnect();
-        };
-      }
+      // Redirection vers la page /party après avoir créé la ROOM
+      router.push(`/party?code=${generatedCode}`);
     }
-  }, [roomCode, router]);
+  };
 
   return (
     <div>

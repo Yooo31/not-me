@@ -3,28 +3,22 @@ import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const PartyPage: React.FC = () => {
-  const [socket, setSocket] = useState<any>(null); // Utilisez le type correct pour Socket.io
+  const [socket, setSocket] = useState<any>(null); 
+  const [players, setPlayers] = useState<any[]>([]); 
 
   useEffect(() => {
-    // Utilisez le code de la ROOM à partir de l'URL
     const roomCode = window.location.search.split('=')[1];
 
-    // Initialisez le socket une fois que le composant est monté
-    const newSocket = io();
-    setSocket(newSocket);
+    // Spécifiez l'URL du serveur socket.io
+    const newSocket = io('http://localhost:3000'); // Assurez-vous de mettre l'URL correcte
 
-    // Écoutez les événements nécessaires
     newSocket.on('connect', () => {
-      console.log('Connected to WebSocket');
-    });
-
-    newSocket.on('disconnect', () => {
-      console.log('Disconnected from WebSocket');
+      console.log('Connected to server');
     });
 
     newSocket.on('playerJoined', (data: any) => {
       console.log('Player joined:', data);
-      // Mettez à jour l'état des joueurs
+      setPlayers((prevPlayers) => [...prevPlayers, data]);
     });
 
     newSocket.on('setMaster', (data: any) => {
@@ -32,16 +26,22 @@ const PartyPage: React.FC = () => {
       // Mettez à jour l'état du maître
     });
 
-    // Retournez une fonction de nettoyage pour déconnecter le socket lors du démontage du composant
+    setSocket(newSocket);
+
     return () => {
       newSocket.disconnect();
     };
-  }, []); // Assurez-vous de ne pas déclencher ce useEffect lors de chaque mise à jour
+  }, []);
 
   return (
     <div>
       <h1>Party Page</h1>
-      {/* Le contenu de la page */}
+      <h2>Liste des joueurs :</h2>
+      <ul>
+        {players.map((player) => (
+          <li key={player.playerId}>{player.username}</li>
+        ))}
+      </ul>
     </div>
   );
 };
